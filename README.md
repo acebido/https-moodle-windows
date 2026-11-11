@@ -36,6 +36,20 @@ No pregunta nada y tarda menos de un minuto. Debajo de cada paso, en gris, expli
 y termina con una **comprobación** en verde (bien) o en rojo (con el motivo). Si lo ejecutas
 dos veces no pasa nada: lo que ya está hecho, lo deja como está.
 
+## Desde otros equipos de la misma red
+
+Para que entren también otros ordenadores o móviles conectados a la misma red (casa o aula):
+
+```powershell
+.\activar_https.ps1 -RedLocal
+```
+
+Pone Moodle en **https://nombre-del-ordenador**, abre los puertos 80 y 443 del cortafuegos de
+Windows (solo en redes privadas) y deja en la carpeta el fichero `certificado-moodle-<nombre>.cer`,
+que hay que instalar en cada equipo que vaya a entrar (la guía explica cómo en Windows, Mac,
+Android e iPhone). Si los otros equipos no encuentran el nombre, usa la IP del ordenador:
+`.\activar_https.ps1 -RedLocal -Nombre 192.168.1.35`.
+
 ## Qué hace
 
 | Paso | Qué hace |
@@ -50,6 +64,18 @@ dos veces no pasa nada: lo que ya está hecho, lo deja como está.
 
 Para quien siga la guía paso a paso (como en el vídeo). Cada una es **una sola línea**: cópiala
 con el botón de la derecha, pégala en **Terminal (Administrador)** y pulsa Intro.
+
+### Abrir el Terminal como administrador
+
+- **Con el ratón:** botón derecho en el botón **Inicio** de Windows → **Terminal (Administrador)**
+  → **Sí**. En Windows 10 se llama *Windows PowerShell (Administrador)*.
+- **Con el teclado:** **Windows + X** y después la tecla **A** → **Sí**.
+- **Con un doble clic:** descarga **[abrir-powershell-aqui.cmd](https://github.com/acebido/https-moodle-windows/raw/main/abrir-powershell-aqui.cmd)**
+  y ábrelo: abre PowerShell como administrador (acepta el aviso de Windows con **Sí**; si sale
+  «Windows protegió su PC», **Más información → Ejecutar de todas formas**).
+
+La ventana sabe que es de administrador porque el título lo dice y la línea empieza por
+`PS C:\Windows\system32>`. Para pegar: **botón derecho** del ratón o **Ctrl + V**.
 
 Paso 1 · Crear el certificado:
 

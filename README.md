@@ -45,6 +45,52 @@ dos veces no pasa nada: lo que ya está hecho, lo deja como está.
 | 4. De http a https | El puerto 80 lo atiende un sitio pequeño, «Moodle - redireccion a HTTPS», que manda cada visita a la misma página en https:// |
 | 5. Moodle | Cambia `$CFG->wwwroot` a `https://localhost` en `config.php` (copia en `config.php.antes-https`), cambia los enlaces ya guardados en los cursos y vacía las cachés |
 
+## A mano: las órdenes
+
+Para quien siga la guía paso a paso (como en el vídeo). Cada una es **una sola línea**: cópiala
+con el botón de la derecha, pégala en **Terminal (Administrador)** y pulsa Intro.
+
+Paso 1 · Crear el certificado:
+
+```powershell
+New-SelfSignedCertificate -DnsName localhost -CertStoreLocation Cert:\LocalMachine\My -FriendlyName "Moodle localhost" -NotAfter (Get-Date).AddYears(5)
+```
+
+Paso 2 · Abrir los certificados del equipo:
+
+```powershell
+certlm.msc
+```
+
+Pasos 3 y 4 · Abrir el Administrador de IIS:
+
+```powershell
+inetmgr
+```
+
+Paso 4 · Crear la carpeta del sitio de redirección:
+
+```powershell
+mkdir C:\inetpub\moodle-redireccion
+```
+
+Paso 5 · Abrir la configuración de Moodle (cambia `http://localhost` por `https://localhost` y guarda):
+
+```powershell
+notepad C:\moodle\config.php
+```
+
+Paso 5 · Cambiar los enlaces ya guardados en los cursos y vaciar las cachés (o desde Moodle, en
+`https://localhost/admin/tool/replace/index.php` y `https://localhost/admin/purgecaches.php`):
+
+```powershell
+C:\php\php.exe C:\moodle\public\admin\tool\replace\cli\replace.php --search=http://localhost --replace=https://localhost --shorten --non-interactive
+```
+
+```powershell
+C:\php\php.exe C:\moodle\admin\cli\purge_caches.php
+```
+
 ## Volver atrás
 
 ```powershell

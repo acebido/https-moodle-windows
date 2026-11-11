@@ -117,10 +117,23 @@ Paso 4 · Crear la carpeta del sitio de redirección:
 mkdir C:\inetpub\moodle-redireccion
 ```
 
+Paso 4 · Destino de la **Redirección HTTP** (escríbelo tal cual y marca «Redirigir todas las solicitudes al
+destino exacto»; `$S$Q` conserva la página y lo que va detrás del `?`):
+
+```text
+https://localhost$S$Q
+```
+
 Paso 5 · Abrir la configuración de Moodle (cambia `http://localhost` por `https://localhost` y guarda):
 
 ```powershell
 notepad C:\moodle\config.php
+```
+
+Paso 5 · Reiniciar IIS después de guardar (PHP guarda `config.php` en memoria hasta un minuto):
+
+```powershell
+iisreset
 ```
 
 Paso 5 · Cambiar los enlaces ya guardados en los cursos y vaciar las cachés (o desde Moodle, en

@@ -1,4 +1,4 @@
-﻿﻿# =============================================================================
+﻿# =============================================================================
 #  Activar HTTPS (gratis) en Moodle sobre Windows 11 con IIS
 #  Acebido · José Luis Díaz
 # =============================================================================
@@ -73,9 +73,12 @@ else { $NOMBRE = $ACTUAL }
 $ES_IP = $NOMBRE -match '^\d{1,3}(\.\d{1,3}){3}$'
 
 # Ejecuta un script de PHP sin que los avisos de PHP por la salida de errores corten el script.
-function Php($guion, [string[]]$argumentos) {
+# Con -Resumen solo enseña las líneas de progreso (la búsqueda y sustitución escribe cada consulta SQL).
+function Php($guion, [string[]]$argumentos, [switch]$Resumen) {
   $ErrorActionPreference = 'Continue'
-  & $PHP $guion @argumentos 2>&1 | ForEach-Object { Write-Host "  $_" }
+  & $PHP $guion @argumentos 2>&1 | ForEach-Object {
+    $l = "$_"
+    if (-not $Resumen -or $l -match '^\s*(\+\+|==|!!!|Error|PHP |Fatal|Warning|Notice|Default exception)') { Write-Host "  $l" } }
   $ErrorActionPreference = 'Stop'
   if ($LASTEXITCODE -ne 0) { Write-Host "  PHP ha dado un error con $(Split-Path $guion -Leaf): mira los mensajes de arriba." -ForegroundColor Red; exit 1 }
 }
@@ -84,7 +87,8 @@ function Reemplaza($de, $a) {
   if ($de -eq $a) { return }
   $args2 = @("--search=$de", "--replace=$a", '--non-interactive')
   if ($a.Length -gt $de.Length) { $args2 += '--shorten' }   # Moodle solo recorta si un texto no cabe en su campo
-  Php "$CODE\public\admin\tool\replace\cli\replace.php" $args2
+  Write-Host "  enlaces: $de → $a"
+  Php "$CODE\public\admin\tool\replace\cli\replace.php" $args2 -Resumen
 }
 # Pone la dirección en config.php (copia antes, escribe aparte y luego copia).
 function CambiaConfig($url) {
@@ -92,6 +96,9 @@ function CambiaConfig($url) {
   $nuevo = (Get-Content $CFGF -Raw) -replace "(\`$CFG->wwwroot\s*=\s*')[^']*'", ('${1}' + $url + "'")
   [IO.File]::WriteAllText("$CFGF.nuevo", $nuevo)
   Copy-Item "$CFGF.nuevo" $CFGF -Force; Remove-Item "$CFGF.nuevo"
+  # PHP guarda config.php en su caché (OPcache) hasta 60 s: sin reiniciar IIS, Moodle seguiría unos
+  # segundos con la dirección vieja y mandaría al navegador a ella.
+  & iisreset /noforce 2>&1 | Out-Null
 }
 # Los certificados que crea este script (nombre descriptivo «Moodle …» y firmados por sí mismos).
 function CertificadosNuestros($almacen) {
@@ -188,13 +195,14 @@ if (Get-WebBinding -Name $SITIO -Protocol http -Port 80) {
   Get-WebBinding -Name $SITIO -Protocol http -Port 80 | Remove-WebBinding
   Write-Host '  el sitio «Moodle» deja el puerto 80' }
 New-Item -ItemType Directory -Path $CARPETA -Force | Out-Null
-# exactDestination="false": añade a la dirección la página que se pedía (y lo que va detrás del ?).
+# exactDestination="true" con $S$Q: IIS añade la página que se pedía ($S) y lo que va detrás del ? ($Q).
+# (Con exactDestination="false" se pierde lo de detrás del ?: /course/view.php?id=1 acabaría en /course/view.php.)
 # Found (302) y no Permanent (301): el navegador no la guarda para siempre, por si se deshace.
 @"
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
   <system.webServer>
-    <httpRedirect enabled="true" destination="https://$NOMBRE" exactDestination="false" childOnly="false" httpResponseStatus="Found" />
+    <httpRedirect enabled="true" destination="https://$NOMBRE`$S`$Q" exactDestination="true" childOnly="false" httpResponseStatus="Found" />
   </system.webServer>
 </configuration>
 "@ | Set-Content -Path "$CARPETA\web.config" -Encoding UTF8
@@ -218,10 +226,19 @@ if ($RedLocal) {
   if (-not (Get-NetFirewallRule -DisplayName $REGLA -ErrorAction SilentlyContinue)) {
     New-NetFirewallRule -DisplayName $REGLA -Direction Inbound -Protocol TCP -LocalPort 80,443 -Action Allow -Profile Private,Domain | Out-Null }
   Write-Host "  cortafuegos: regla «$REGLA» (puertos 80 y 443, redes privadas y de dominio)"
+  # Al activar IIS, Windows suele abrir ya los puertos 80 y 443 en TODAS las redes (reglas «Servicios World Wide Web»).
+  $todas = Get-NetFirewallRule -Direction Inbound -Enabled True -Action Allow -ErrorAction SilentlyContinue |
+           Where-Object { $_.Profile -eq 'Any' -or "$($_.Profile)" -match 'Public' } |
+           Get-NetFirewallPortFilter | Where-Object { $_.Protocol -eq 'TCP' -and (@($_.LocalPort) -contains '443') }
   $publicas = Get-NetConnectionProfile | Where-Object { $_.NetworkCategory -eq 'Public' }
   foreach ($red in $publicas) {
-    Write-Host "  ojo: la red «$($red.Name)» es PÚBLICA y por ella no entrará nadie. Si es la de tu casa o tu aula, márcala como privada:" -ForegroundColor Yellow
-    Write-Host "     Set-NetConnectionProfile -InterfaceIndex $($red.InterfaceIndex) -NetworkCategory Private" -ForegroundColor Yellow
+    if ($todas) {
+      Write-Host "  ojo: la red «$($red.Name)» está marcada como PÚBLICA y Windows ya deja entrar a Moodle también por ella (lo abrió IIS)." -ForegroundColor Yellow
+      Write-Host '  Funciona, pero no lo uses conectado a wifis públicas (bibliotecas, cafeterías…).' -ForegroundColor Yellow
+    } else {
+      Write-Host "  ojo: la red «$($red.Name)» es PÚBLICA y por ella no entrará nadie. Si es la de tu casa o tu aula, márcala como privada:" -ForegroundColor Yellow
+      Write-Host "     Set-NetConnectionProfile -InterfaceIndex $($red.InterfaceIndex) -NetworkCategory Private" -ForegroundColor Yellow
+    }
   }
   $fichero = Join-Path $AQUI "certificado-moodle-$NOMBRE.cer"
   Export-Certificate -Cert $cert -FilePath $fichero | Out-Null

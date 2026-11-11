@@ -10,8 +10,9 @@ Está pensado para el Moodle que dejan esos scripts: sitio de IIS «Moodle», c�
 y PHP en `C:\php`.
 
 > Sirve para un **ordenador de pruebas o de prácticas** que abre Moodle en **https://localhost**.
-> El certificado solo es de confianza en ese ordenador. Para un Moodle abierto a internet, con
-> su dominio, hace falta un certificado de Let's Encrypt (también gratis): lo explica la guía.
+> No hace falta dominio, ni cuenta, ni tocar el router. El certificado solo es de confianza en
+> ese ordenador: desde otro equipo saldrá el aviso de seguridad (la guía explica qué hacer si
+> algún día quieres que otros entren).
 
 ## 📄 Guía
 

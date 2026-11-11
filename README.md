@@ -50,6 +50,22 @@ que hay que instalar en cada equipo que vaya a entrar (la guía explica cómo en
 Android e iPhone). Si los otros equipos no encuentran el nombre, usa la IP del ordenador:
 `.\activar_https.ps1 -RedLocal -Nombre 192.168.1.35`.
 
+**Si van a trabajar varios alumnos a la vez**, el ordenador con Moodle hace de servidor y necesita
+más capacidad. Cuenta a los que trabajan *al mismo tiempo* (el peor momento: un cuestionario que
+empiezan todos a la vez). Cifras orientativas, siempre con disco SSD:
+
+| Alumnos a la vez | Procesador | RAM | Windows |
+|---|---|---|---|
+| 1–5 | 4 núcleos | 8 GB | Windows 11 Pro |
+| 6–15 | 4–6 núcleos | 8–16 GB | Windows 11 Pro (algo lento en los picos) |
+| 16–30 | 6–8 núcleos | 16 GB | Windows Server recomendado |
+| 31–60 | 8 o más | 32 GB | Windows Server, ordenador dedicado |
+| más de 60 | — | — | un servidor de verdad o un alojamiento de Moodle |
+
+El IIS de Windows 10/11 Pro atiende como mucho 10 peticiones a la vez (3 en Home): con una clase
+entera, el resto espera turno. La guía explica también qué ajustar en MariaDB y por qué el
+ordenador con Moodle debe ir por cable.
+
 ## Qué hace
 
 | Paso | Qué hace |

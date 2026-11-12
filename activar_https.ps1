@@ -17,18 +17,15 @@
 #
 #  Formas de usarlo:
 #   .\activar_https.ps1                 Moodle en https://localhost (solo este ordenador)
-#   .\activar_https.ps1 -RedLocal       Moodle en https://<nombre-del-ordenador>, para entrar
-#                                       también desde otros equipos de la misma red: abre el
-#                                       cortafuegos y deja el certificado en un fichero .cer
-#                                       para instalarlo en esos equipos
-#   .\activar_https.ps1 -RedLocal -Nombre 192.168.1.35
-#                                       lo mismo, con otro nombre o con la IP del ordenador
 #   .\activar_https.ps1 -Deshacer       vuelve a dejarlo todo como estaba (http://)
+#
+#  Para entrar también desde otros equipos de la misma red:
+#  github.com/acebido/moodle-red-local-windows
 #
 #  Cómo se ejecuta: PowerShell COMO ADMINISTRADOR, en esta carpeta
 #  (o doble clic en abrir-powershell-aqui.cmd y después la orden).
 # =============================================================================
-param([switch]$Deshacer, [switch]$RedLocal, [string]$Nombre)
+param([switch]$Deshacer)
 
 $ErrorActionPreference = 'Stop'
 if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
@@ -66,11 +63,9 @@ if ($uri.AbsolutePath -ne '/' -or -not $uri.IsDefaultPort) {
 $ACTUAL = $uri.Host
 Write-Host "  dirección actual de Moodle: $WWW"
 
-# La dirección que va a tener: la de ahora, o la del ordenador con -RedLocal.
-if ($RedLocal) { $NOMBRE = if ($Nombre) { $Nombre.ToLower() } else { $env:COMPUTERNAME.ToLower() } }
-elseif ($Nombre) { $NOMBRE = $Nombre.ToLower() }
-else { $NOMBRE = $ACTUAL }
-$ES_IP = $NOMBRE -match '^\d{1,3}(\.\d{1,3}){3}$'
+# La dirección que va a tener: siempre localhost (también si venía de la red local).
+$NOMBRE = 'localhost'
+$ES_IP = $false
 
 # Ejecuta un script de PHP sin que los avisos de PHP por la salida de errores corten el script.
 # Con -Resumen solo enseña las líneas de progreso (la búsqueda y sustitución escribe cada consulta SQL).
@@ -128,11 +123,6 @@ if ($Deshacer) {
   if (Test-Path "$CFGF.antes-https") { Remove-Item "$CFGF.antes-https" }
   Write-Host "  OK: Moodle vuelve a estar en $ORIGEN" -ForegroundColor Green
   exit 0
-}
-
-if ($RedLocal) {
-  Write-Host "  modo red local: Moodle pasará a https://$NOMBRE" -ForegroundColor Yellow
-  if ($ES_IP) { Write-Host '  ojo: si el router le da otra IP a este ordenador, habrá que repetirlo. Mejor el nombre del ordenador o una IP fija.' -ForegroundColor Yellow }
 }
 
 # =============================================================================
@@ -220,34 +210,6 @@ Reemplaza "http://$ACTUAL"  "https://$NOMBRE"
 Php "$CODE\admin\cli\purge_caches.php" @()
 Write-Host '  cachés vaciadas'
 
-if ($RedLocal) {
-  Write-Host '== 6. Red local ==' -ForegroundColor Cyan
-  Write-Host '   Abre los puertos 80 y 443 en el cortafuegos (solo redes privadas) y guarda el certificado para los otros equipos.' -ForegroundColor Gray
-  if (-not (Get-NetFirewallRule -DisplayName $REGLA -ErrorAction SilentlyContinue)) {
-    New-NetFirewallRule -DisplayName $REGLA -Direction Inbound -Protocol TCP -LocalPort 80,443 -Action Allow -Profile Private,Domain | Out-Null }
-  Write-Host "  cortafuegos: regla «$REGLA» (puertos 80 y 443, redes privadas y de dominio)"
-  # Al activar IIS, Windows suele abrir ya los puertos 80 y 443 en TODAS las redes (reglas «Servicios World Wide Web»).
-  $todas = Get-NetFirewallRule -Direction Inbound -Enabled True -Action Allow -ErrorAction SilentlyContinue |
-           Where-Object { $_.Profile -eq 'Any' -or "$($_.Profile)" -match 'Public' } |
-           Get-NetFirewallPortFilter | Where-Object { $_.Protocol -eq 'TCP' -and (@($_.LocalPort) -contains '443') }
-  $publicas = Get-NetConnectionProfile | Where-Object { $_.NetworkCategory -eq 'Public' }
-  foreach ($red in $publicas) {
-    if ($todas) {
-      Write-Host "  ojo: la red «$($red.Name)» está marcada como PÚBLICA y Windows ya deja entrar a Moodle también por ella (lo abrió IIS)." -ForegroundColor Yellow
-      Write-Host '  Funciona, pero no lo uses conectado a wifis públicas (bibliotecas, cafeterías…).' -ForegroundColor Yellow
-    } else {
-      Write-Host "  ojo: la red «$($red.Name)» es PÚBLICA y por ella no entrará nadie. Si es la de tu casa o tu aula, márcala como privada:" -ForegroundColor Yellow
-      Write-Host "     Set-NetConnectionProfile -InterfaceIndex $($red.InterfaceIndex) -NetworkCategory Private" -ForegroundColor Yellow
-    }
-  }
-  $fichero = Join-Path $AQUI "certificado-moodle-$NOMBRE.cer"
-  Export-Certificate -Cert $cert -FilePath $fichero | Out-Null
-  Write-Host "  certificado para los otros equipos: $fichero"
-  Write-Host '  En cada equipo que vaya a entrar: copia ese .cer y, en PowerShell de administrador:' -ForegroundColor Gray
-  Write-Host "     Import-Certificate -FilePath .\certificado-moodle-$NOMBRE.cer -CertStoreLocation Cert:\LocalMachine\Root" -ForegroundColor Gray
-  Write-Host '  (o doble clic en el .cer → Instalar certificado → Equipo local → «Entidades de certificación raíz de confianza»)' -ForegroundColor Gray
-}
-
 Write-Host '== Comprobación ==' -ForegroundColor Cyan
 Write-Host '   Abre Moodle por https:// (con el certificado comprobado como lo haría el navegador) y prueba la redirección.' -ForegroundColor Gray
 Start-Sleep 2
@@ -266,6 +228,5 @@ try {
 } catch { $bien = $false; Write-Host "  http://$NOMBRE no responde: $($_.Exception.Message)" -ForegroundColor Red }
 if ($bien) {
   Write-Host "  Listo: abre https://$NOMBRE en el navegador. Si lo tenías abierto, ciérralo y vuelve a abrirlo." -ForegroundColor Green
-  if ($RedLocal) { Write-Host "  Desde los otros equipos (con el certificado instalado): https://$NOMBRE" -ForegroundColor Green }
 }
 else { Write-Host '  Algo no ha ido bien: mira los mensajes de arriba. Para volver atrás:  .\activar_https.ps1 -Deshacer' -ForegroundColor Red; exit 1 }

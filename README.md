@@ -11,13 +11,13 @@ y PHP en `C:\php`.
 
 > Sirve para un **ordenador de pruebas o de prácticas** que abre Moodle en **https://localhost**.
 > No hace falta dominio, ni cuenta, ni tocar el router. El certificado solo es de confianza en
-> ese ordenador: desde otro equipo saldrá el aviso de seguridad (la guía explica qué hacer si
-> algún día quieres que otros entren).
+> ese ordenador: desde otro equipo saldrá el aviso de seguridad (para eso está
+> [moodle-red-local-windows](https://github.com/acebido/moodle-red-local-windows)).
 
 ## 📄 Guía
 
 **[Guía en PDF](Guia-HTTPS-Moodle-Windows.pdf)**: con el script y paso a paso a mano, cómo comprobarlo,
-cómo volver atrás y los problemas más habituales.
+cómo volver atrás, los problemas más habituales y cómo proteger Moodle en un ordenador compartido.
 
 ## Cómo se ejecuta
 
@@ -38,33 +38,9 @@ dos veces no pasa nada: lo que ya está hecho, lo deja como está.
 
 ## Desde otros equipos de la misma red
 
-Para que entren también otros ordenadores o móviles conectados a la misma red (casa o aula):
-
-```powershell
-.\activar_https.ps1 -RedLocal
-```
-
-Pone Moodle en **https://nombre-del-ordenador**, abre los puertos 80 y 443 del cortafuegos de
-Windows (solo en redes privadas) y deja en la carpeta el fichero `certificado-moodle-<nombre>.cer`,
-que hay que instalar en cada equipo que vaya a entrar (la guía explica cómo en Windows, Mac,
-Android e iPhone). Si los otros equipos no encuentran el nombre, usa la IP del ordenador:
-`.\activar_https.ps1 -RedLocal -Nombre 192.168.1.35`.
-
-**Si van a trabajar varios alumnos a la vez**, el ordenador con Moodle hace de servidor y necesita
-más capacidad. Cuenta a los que trabajan *al mismo tiempo* (el peor momento: un cuestionario que
-empiezan todos a la vez). Cifras orientativas, siempre con disco SSD:
-
-| Alumnos a la vez | Procesador | RAM | Windows |
-|---|---|---|---|
-| 1–5 | 4 núcleos | 8 GB | Windows 11 Pro |
-| 6–15 | 4–6 núcleos | 8–16 GB | Windows 11 Pro (algo lento en los picos) |
-| 16–30 | 6–8 núcleos | 16 GB | Windows Server recomendado |
-| 31–60 | 8 o más | 32 GB | Windows Server, ordenador dedicado |
-| más de 60 | — | — | un servidor de verdad o un alojamiento de Moodle |
-
-El IIS de Windows 10/11 Pro atiende como mucho 10 peticiones a la vez (3 en Home): con una clase
-entera, el resto espera turno. La guía explica también qué ajustar en MariaDB y por qué el
-ordenador con Moodle debe ir por cable.
+Este certificado solo es de confianza en este ordenador. Para que entren otros ordenadores o
+móviles de la misma red (casa o aula), hay un segundo vídeo y otro script que parten de lo hecho
+aquí: **[moodle-red-local-windows](https://github.com/acebido/moodle-red-local-windows)**.
 
 ## Ordenador compartido: proteger Moodle
 

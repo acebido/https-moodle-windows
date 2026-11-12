@@ -66,6 +66,26 @@ El IIS de Windows 10/11 Pro atiende como mucho 10 peticiones a la vez (3 en Home
 entera, el resto espera turno. La guía explica también qué ajustar en MariaDB y por qué el
 ordenador con Moodle debe ir por cable.
 
+## Ordenador compartido: proteger Moodle
+
+Si en el ordenador con Moodle entran **otras personas con su propia cuenta de Windows** (un
+ordenador del aula, por ejemplo), hay que protegerlo. Windows deja que cualquier usuario del
+ordenador lea y cambie `C:\moodle`, `C:\moodledata`, `C:\php` y `C:\mariadb`. Con eso podría ver
+la contraseña de la base de datos en `config.php`, copiar todo lo subido a Moodle o cambiar el
+código. Quien entra **por el navegador** no puede hacer nada de esto: solo importa quien se sienta
+delante del ordenador.
+
+```powershell
+.\proteger_moodle.ps1
+```
+
+Deja esas carpetas solo para los administradores del ordenador, IIS y MariaDB. `config.php`
+queda de solo lectura incluso para IIS. Moodle sigue funcionando igual, con http:// o https://,
+y las extensiones se instalan y se actualizan desde la web como siempre. Tarda unos minutos y
+lo comprueba al final. Para volver atrás: `.\proteger_moodle.ps1 -Deshacer`.
+
+Si el ordenador es solo tuyo, no hace falta.
+
 ## Qué hace
 
 | Paso | Qué hace |

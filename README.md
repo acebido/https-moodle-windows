@@ -11,8 +11,8 @@ y PHP en `C:\php`.
 
 > Sirve para un **ordenador de pruebas o de prácticas** que abre Moodle en **https://localhost**.
 > No hace falta dominio, ni cuenta, ni tocar el router. El certificado solo es de confianza en
-> ese ordenador: desde otro equipo saldrá el aviso de seguridad (para eso está
-> [moodle-red-local-windows](https://github.com/acebido/moodle-red-local-windows)).
+> ese ordenador: desde otro equipo saldrá el aviso de seguridad (cómo evitarlo lo veremos en
+> un próximo vídeo).
 
 ## 📄 Guía
 
@@ -38,9 +38,8 @@ dos veces no pasa nada: lo que ya está hecho, lo deja como está.
 
 ## Desde otros equipos de la misma red
 
-Este certificado solo es de confianza en este ordenador. Para que entren otros ordenadores o
-móviles de la misma red (casa o aula), hay un segundo vídeo y otro script que parten de lo hecho
-aquí: **[moodle-red-local-windows](https://github.com/acebido/moodle-red-local-windows)**.
+Este certificado solo es de confianza en este ordenador. Cómo entrar con candado desde otros
+ordenadores o móviles de la misma red (casa o aula) lo veremos en un **próximo vídeo**.
 
 ## Ordenador compartido: proteger Moodle
 

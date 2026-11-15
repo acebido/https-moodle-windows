@@ -104,7 +104,7 @@ certlm.msc
 Pasos 3 y 4 · Abrir el Administrador de IIS:
 
 ```powershell
-inetmgr
+start inetmgr
 ```
 
 Paso 4 · Crear la carpeta del sitio de redirección:

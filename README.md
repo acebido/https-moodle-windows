@@ -10,9 +10,8 @@ Está pensado para el Moodle que dejan esos scripts: sitio de IIS «Moodle», c�
 y PHP en `C:\php`.
 
 > Sirve para un **ordenador de pruebas o de prácticas** que abre Moodle en **https://localhost**.
-> No hace falta dominio, ni cuenta, ni tocar el router. El certificado solo es de confianza en
-> ese ordenador: desde otro equipo saldrá el aviso de seguridad (cómo evitarlo lo veremos en
-> un próximo vídeo).
+> No hace falta dominio, ni cuenta, ni tocar el router. El certificado solo vale para
+> https://localhost en ese ordenador.
 
 ## 📄 Guía
 
@@ -42,14 +41,16 @@ Si en el ordenador con Moodle entran **otras personas con su propia cuenta de Wi
 ordenador del aula, por ejemplo), hay que protegerlo. Windows deja que cualquier usuario del
 ordenador lea y cambie `C:\moodle`, `C:\moodledata`, `C:\php` y `C:\mariadb`. Con eso podría ver
 la contraseña de la base de datos en `config.php`, copiar todo lo subido a Moodle o cambiar el
-código. Quien entra **por el navegador** no puede hacer nada de esto: solo importa quien se sienta
+código. Quien entra **por el navegador** no puede hacer nada de esto: solo importa quien se siente
 delante del ordenador.
 
 ```powershell
 .\proteger_moodle.ps1
 ```
 
-Deja esas carpetas solo para los administradores del ordenador, IIS y MariaDB. `config.php`
+Deja `C:\moodle` y `C:\moodledata` solo para los administradores, el sistema e IIS, y `C:\mariadb`
+para los administradores, el sistema y MariaDB; `C:\php` y `C:\instaladores` los demás pueden
+usarlos o verlos, pero no cambiarlos. `config.php`
 queda de solo lectura incluso para IIS. Moodle sigue funcionando igual, con http:// o https://,
 y las extensiones se instalan y se actualizan desde la web como siempre. Tarda unos minutos y
 lo comprueba al final. Para volver atrás: `.\proteger_moodle.ps1 -Deshacer`.
@@ -69,7 +70,9 @@ Si el ordenador es solo tuyo, no hace falta.
 ## A mano: las órdenes
 
 Para quien siga la guía paso a paso (como en el vídeo). Cada una es **una sola línea**: cópiala
-con el botón de la derecha, pégala en **Terminal (Administrador)** y pulsa Intro.
+con el botón de la derecha, pégala en **Terminal (Administrador)** y pulsa Intro. Hay dos
+excepciones, avisadas en su sitio: el destino de la redirección se escribe en IIS, y el Bloc de
+notas se abre desde el buscador de Windows.
 
 ### Abrir el Terminal como administrador
 
@@ -114,7 +117,10 @@ destino exacto»; `$S$Q` conserva la página y lo que va detrás del `?`):
 https://localhost$S$Q
 ```
 
-Paso 5 · Abrir la configuración de Moodle (cambia `http://localhost` por `https://localhost` y guarda):
+Paso 5 · Abrir la configuración de Moodle. Escríbelo en el **buscador de Windows** y pulsa
+**Ejecutar comando** (desde el Terminal de administrador puede abrirse vacío). Cambia
+`http://localhost` por `https://localhost` y guarda. Si protegiste el ordenador, abre el Bloc de
+notas como administrador y, en **Archivo → Abrir**, escribe `C:\moodle\config.php`:
 
 ```powershell
 notepad C:\moodle\config.php
@@ -148,4 +154,5 @@ el certificado, y devuelve la dirección y los enlaces a http://.
 
 ---
 Acebido · Formación · Tecnología · Futuro — José Luis Díaz.
+
 Moodle es software libre (GPLv3) de Moodle HQ; las marcas citadas pertenecen a sus titulares.

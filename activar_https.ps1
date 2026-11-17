@@ -6,8 +6,8 @@
 #  (sitio de IIS «Moodle», código en C:\moodle y PHP en C:\php).
 #
 #  Qué hace:
-#   1. Crea un certificado para la dirección del campus, válido 5 años. Lo crea
-#      el propio Windows: no se descarga ni se paga nada.
+#   1. Crea un certificado para localhost, válido 5 años. Lo crea el propio
+#      Windows: no se descarga ni se paga nada.
 #   2. Lo añade a los certificados de confianza de este ordenador, para que
 #      Edge y Chrome muestren el candado sin ningún aviso.
 #   3. Añade a IIS el puerto 443 (HTTPS) con ese certificado.
@@ -36,7 +36,7 @@ $PHP      = 'C:\php\php.exe'
 $SITIO    = 'Moodle'
 $REDIR    = 'Moodle - redireccion a HTTPS'
 $CARPETA  = 'C:\inetpub\moodle-redireccion'
-$REGLA    = 'Moodle HTTPS (red local)'
+$REGLA    = 'Moodle HTTPS (red local)'   # la creaban versiones anteriores del script: -Deshacer solo la borra si existe
 $AQUI     = if ($PSScriptRoot) { $PSScriptRoot } else { (Get-Location).Path }
 
 Write-Host '== Comprobaciones ==' -ForegroundColor Cyan
@@ -62,7 +62,6 @@ Write-Host "  dirección actual de Moodle: $WWW"
 
 # La dirección que va a tener: siempre localhost.
 $NOMBRE = 'localhost'
-$ES_IP = $false
 
 # Ejecuta un script de PHP sin que los avisos de PHP por la salida de errores corten el script.
 # Con -Resumen solo enseña las líneas de progreso (la búsqueda y sustitución escribe cada consulta SQL).
@@ -125,10 +124,8 @@ if ($Deshacer) {
 # =============================================================================
 Write-Host '== 1. Certificado ==' -ForegroundColor Cyan
 Write-Host "   Crea con Windows un certificado para $NOMBRE, válido 5 años. Gratis y sin descargar nada." -ForegroundColor Gray
-# Lo que va dentro del certificado: el nombre (o la IP) y, siempre, localhost.
-$san = @()
-if ($ES_IP) { $san += "IPAddress=$NOMBRE" } else { $san += "DNS=$NOMBRE" }
-if ($NOMBRE -ne 'localhost') { $san += 'DNS=localhost' }
+# Lo que va dentro del certificado: el nombre localhost.
+$san = @("DNS=$NOMBRE")
 $cert = CertificadosNuestros Cert:\LocalMachine\My |
         Where-Object { $_.FriendlyName -eq "Moodle $NOMBRE" -and $_.NotAfter -gt (Get-Date).AddDays(30) } |
         Select-Object -First 1
@@ -137,7 +134,7 @@ else {
   $cert = New-SelfSignedCertificate -Subject "CN=$NOMBRE" -TextExtension @("2.5.29.17={text}$($san -join '&')") `
           -CertStoreLocation Cert:\LocalMachine\My -FriendlyName "Moodle $NOMBRE" -NotAfter (Get-Date).AddYears(5) `
           -KeyAlgorithm RSA -KeyLength 2048 -HashAlgorithm SHA256
-  Write-Host "  creado para: $(($san -replace '^(DNS|IPAddress)=','') -join ', ') (caduca el $($cert.NotAfter.ToString('dd-MM-yyyy')))"
+  Write-Host "  creado para: $(($san -replace '^DNS=','') -join ', ') (caduca el $($cert.NotAfter.ToString('dd-MM-yyyy')))"
 }
 
 Write-Host '== 2. Certificado de confianza ==' -ForegroundColor Cyan
@@ -167,7 +164,7 @@ if (-not (Get-WebBinding -Name $SITIO -Protocol https -Port 443)) {
 $ssl = 'IIS:\SslBindings\0.0.0.0!443'
 if ((Test-Path $ssl) -and (Get-Item $ssl).Thumbprint -ne $cert.Thumbprint) { Remove-Item $ssl }
 if (-not (Test-Path $ssl)) { (Get-WebBinding -Name $SITIO -Protocol https -Port 443).AddSslCertificate($cert.Thumbprint, 'My') }
-# Si antes había otro certificado nuestro (por ejemplo el de localhost), ya no se usa: fuera.
+# Si antes había otro certificado nuestro (de una versión anterior del script), ya no se usa: fuera.
 foreach ($almacen in 'Cert:\LocalMachine\My', 'Cert:\LocalMachine\Root') {
   CertificadosNuestros $almacen | Where-Object { $_.Thumbprint -ne $cert.Thumbprint } | Remove-Item }
 Write-Host '  el sitio «Moodle» escucha en https://, puerto 443'
@@ -210,6 +207,8 @@ Write-Host '  cachés vaciadas'
 Write-Host '== Comprobación ==' -ForegroundColor Cyan
 Write-Host '   Abre Moodle por https:// (con el certificado comprobado como lo haría el navegador) y prueba la redirección.' -ForegroundColor Gray
 Start-Sleep 2
+# Por si este PowerShell 5.1 no ofrece TLS 1.2 de entrada: la comprobación lo usa siempre.
+[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 $bien = $true
 try {
   $req = [Net.HttpWebRequest]::Create("https://$NOMBRE/login/index.php"); $req.AllowAutoRedirect = $false; $req.Timeout = 60000

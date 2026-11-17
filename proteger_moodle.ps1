@@ -18,7 +18,8 @@
 #   - IIS, que escribe en C:\moodledata y en el código de Moodle (así se pueden
 #     instalar y actualizar extensiones desde la web); config.php solo lo puede leer;
 #   - el servicio de MariaDB, en C:\mariadb.
-#  Moodle sigue funcionando igual desde el navegador, en este equipo y en la red,
+#  En C:\php y C:\instaladores, los demás usuarios solo pueden leer.
+#  Moodle sigue funcionando igual desde el navegador, con http:// o https://,
 #  y las extensiones se instalan y se actualizan como siempre.
 #
 #  No hace falta si el ordenador es solo tuyo (o solo lo usa una persona).
@@ -145,6 +146,8 @@ foreach ($f in 'C:\moodle\config.php', 'C:\moodledata', 'C:\mariadb\data') {
 }
 Start-Sleep 3
 $wwwroot = if ((Get-Content C:\moodle\config.php -Raw) -match "\`$CFG->wwwroot\s*=\s*'([^']+)'") { $Matches[1].TrimEnd('/') } else { 'http://localhost' }
+# Por si este PowerShell 5.1 no ofrece TLS 1.2 de entrada: la comprobación lo usa siempre.
+[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 try {
   $req = [Net.HttpWebRequest]::Create("$wwwroot/login/index.php"); $req.Timeout = 90000
   $r = $req.GetResponse(); $codigo = [int]$r.StatusCode; $html = (New-Object IO.StreamReader($r.GetResponseStream())).ReadToEnd(); $r.Close()

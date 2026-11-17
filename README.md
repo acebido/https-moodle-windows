@@ -36,11 +36,6 @@ No pregunta nada y tarda menos de un minuto. Debajo de cada paso, en gris, expli
 y termina con una **comprobación** en verde (bien) o en rojo (con el motivo). Si lo ejecutas
 dos veces no pasa nada: lo que ya está hecho, lo deja como está.
 
-## Desde otros equipos de la misma red
-
-Este certificado solo es de confianza en este ordenador. Cómo entrar con candado desde otros
-ordenadores o móviles de la misma red (casa o aula) lo veremos en un **próximo vídeo**.
-
 ## Ordenador compartido: proteger Moodle
 
 Si en el ordenador con Moodle entran **otras personas con su propia cuenta de Windows** (un

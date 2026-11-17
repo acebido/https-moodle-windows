@@ -19,9 +19,6 @@
 #   .\activar_https.ps1                 Moodle en https://localhost (solo este ordenador)
 #   .\activar_https.ps1 -Deshacer       vuelve a dejarlo todo como estaba (http://)
 #
-#  Para entrar también desde otros equipos de la misma red:
-#  github.com/acebido/moodle-red-local-windows
-#
 #  Cómo se ejecuta: PowerShell COMO ADMINISTRADOR, en esta carpeta
 #  (o doble clic en abrir-powershell-aqui.cmd y después la orden).
 # =============================================================================
@@ -63,7 +60,7 @@ if ($uri.AbsolutePath -ne '/' -or -not $uri.IsDefaultPort) {
 $ACTUAL = $uri.Host
 Write-Host "  dirección actual de Moodle: $WWW"
 
-# La dirección que va a tener: siempre localhost (también si venía de la red local).
+# La dirección que va a tener: siempre localhost.
 $NOMBRE = 'localhost'
 $ES_IP = $false
 

@@ -1,11 +1,13 @@
 # HTTPS gratis en Moodle sobre Windows 11
 
-Script del canal de Acebido (José Luis Díaz) para poner **https://** y el candado a un Moodle
+Scripts del canal de Acebido (José Luis Díaz) para poner **https://** y el candado a un Moodle
 instalado en Windows 11 con IIS. Gratis: el certificado lo crea el propio Windows, sin
-descargar ni pagar nada.
+pagar nada.
+
+▶️ **Vídeo paso a paso:** [«Cómo activar HTTPS gratis en Moodle sobre Windows 11»](https://youtu.be/0qDRU6h-oyM)
 
 Es la continuación de **[instalar-moodle-windows](https://github.com/acebido/instalar-moodle-windows)**
-(vídeo: [«Cómo instalar Moodle 5.3 sobre Windows 11 a través de scripts»](https://youtu.be/sbFuGd2EJq8)).
+(vídeo: [«Cómo instalar Moodle en Windows 11 fácil (con scripts automatizados)»](https://youtu.be/sbFuGd2EJq8)).
 Está pensado para el Moodle que dejan esos scripts: sitio de IIS «Moodle», código en `C:\moodle`
 y PHP en `C:\php`.
 
